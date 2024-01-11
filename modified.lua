@@ -22,7 +22,7 @@ local PlayerInServer = #getPlayers
 local http = game:GetService("HttpService")
 local ts = game:GetService("TeleportService")
 local rs = game:GetService("ReplicatedStorage")
-local snipeNormal
+local snipeNormal, signal
 local Library = require(rs:WaitForChild("Library"))
 
 if snipeNormalPets == nil then
@@ -42,7 +42,7 @@ local function processListingInfo(uid, gems, item, version, shiny, amount, bough
     local weburl, webContent, webcolor, webStatus
     local versionVal = { [1] = "Golden ", [2] = "Rainbow " }
     local versionStr = versionVal[version] or (version == nil and "")
-    local mention = (Library.Directory.Pets[item].huge or Library.Directory.Pets[item].titanic) and "<@" .. userid .. ">" or ""
+    local mention = ( class == "Pet" and (Library.Directory.Pets[item].huge or Library.Directory.Pets[item].titanic)) and "<@" .. userid .. ">" or ""
 	
     if boughtStatus then
 	webcolor = tonumber(0x00ff00)
@@ -138,11 +138,13 @@ local function processListingInfo(uid, gems, item, version, shiny, amount, bough
 end
 
 local function tryPurchase(uid, gems, item, version, shiny, amount, username, class, playerid, buytimestamp, listTimestamp, snipeNormal)
-    if buytimestamp > listTimestamp then
-	task.wait(buytimestamp - workspace:GetServerTimeNow() - Players.LocalPlayer:GetNetworkPing())
-    end
-    local boughtPet, boughtMessage = game:GetService("ReplicatedStorage").Network.Booths_RequestPurchase:InvokeServer(playerid, uid)
-    processListingInfo(uid, gems, item, version, shiny, amount, username, boughtPet, class, boughtMessage, snipeNormal)
+    signal = game:GetService("RunService").Heartbeat:Connect(function()
+	if buytimestamp < workspace:GetServerTimeNow() - Players.LocalPlayer:GetNetworkPing() then
+	    local boughtPet, boughtMessage = game:GetService("ReplicatedStorage").Network.Booths_RequestPurchase:InvokeServer(playerid, uid)
+	    processListingInfo(uid, gems, item, version, shiny, amount, username, boughtPet, class, boughtMessage, snipeNormal)
+	    signal:Disconnect()
+        end
+    end)
 end
 
 Booths_Broadcast.OnClientEvent:Connect(function(username, message)
