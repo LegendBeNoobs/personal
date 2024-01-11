@@ -140,11 +140,13 @@ end
 local function tryPurchase(uid, gems, item, version, shiny, amount, username, class, playerid, buytimestamp, listTimestamp, snipeNormal)
     signal = game:GetService("RunService").Heartbeat:Connect(function()
 	if buytimestamp < workspace:GetServerTimeNow() - Players.LocalPlayer:GetNetworkPing() then
-	    local boughtPet, boughtMessage = game:GetService("ReplicatedStorage").Network.Booths_RequestPurchase:InvokeServer(playerid, uid)
-	    processListingInfo(uid, gems, item, version, shiny, amount, username, boughtPet, class, boughtMessage, snipeNormal)
 	    signal:Disconnect()
+	    signal = nil
         end
     end)
+    repeat task.wait() until signal == nil
+    local boughtPet, boughtMessage = rs.Network.Booths_RequestPurchase:InvokeServer(playerid, uid)
+    processListingInfo(uid, gems, item, version, shiny, amount, username, boughtPet, class, boughtMessage, snipeNormal)
 end
 
 Booths_Broadcast.OnClientEvent:Connect(function(username, message)
@@ -177,7 +179,7 @@ Booths_Broadcast.OnClientEvent:Connect(function(username, message)
                 local unitGems = gems/amount
 		snipeNormal = false
 				
-                            -- Pets
+            -- Pets
             if string.find(item, "Huge") and unitGems <= 100000 then
                 coroutine.wrap(tryPurchase)(uid, gems, item, version, shiny, amount, username, class, playerid, buytimestamp, listTimestamp, snipeNormal)
                 return
