@@ -201,7 +201,7 @@ Booths_Broadcast.OnClientEvent:Connect(function(username, message)
                 end
 
                 -- Presents and Eggs
-            elseif (item == "Titanic Christmas Present" or string.find(item, "2024 New Year")) and unitGems <= 300000 then
+            elseif (item == "Titanic Christmas Present" or string.find(item, "2024 New Year")) and unitGems <= 100000 then
                 coroutine.wrap(tryPurchase)(uid, gems, item, version, shiny, amount, username, class, playerid, buytimestamp, listTimestamp, snipeNormal)
                 return
             elseif class == "Egg" and unitGems <= 500000 then
